@@ -54,24 +54,28 @@ MainWindow::MainWindow(QWidget *parent)
             this->rightLayout->addWidget(new QLabel("Composite"), 7,0,1,2);
 
             this->compositeButton = new QPushButton(this);
-            this->compositeButton->setText("Quadtree Composite");
+            this->compositeButton->setText("Quadtree Gradient Domain Composite");
             this->rightLayout->addWidget(this->compositeButton, 8,0,1,2);
+
+            this->mvcCompositeButton = new QPushButton(this);
+            this->mvcCompositeButton->setText("Mean Value Coordinates Composite");
+            this->rightLayout->addWidget(this->mvcCompositeButton, 9,0,1,2);
 
             line = new QFrame();
             line->setFrameShape(QFrame::HLine);
             line->setFrameShadow(QFrame::Sunken);
-            this->rightLayout->addWidget(line, 9,0,1,2);
+            this->rightLayout->addWidget(line, 10,0,1,2);
 
             this->saveButton = new QPushButton(this);
             this->saveButton->setText("Save");
-            this->rightLayout->addWidget(this->saveButton, 10,0,1,2);
+            this->rightLayout->addWidget(this->saveButton, 11,0,1,2);
 
             this->layerView = new LayerListWidget(this);
-            this->rightLayout->addWidget(this->layerView, 11,0,1,2);
+            this->rightLayout->addWidget(this->layerView, 12,0,1,2);
 
             this->aboutButton = new QPushButton(this);
             this->aboutButton->setText("About");
-            this->rightLayout->addWidget(this->aboutButton, 12,1,1,1);
+            this->rightLayout->addWidget(this->aboutButton, 13,1,1,1);
         this->mainLayout->addLayout(this->rightLayout, 1);
 
     this->setCentralWidget(this->centralWidget);
@@ -84,6 +88,9 @@ MainWindow::MainWindow(QWidget *parent)
     this->curDocment = NULL;
 
     this->quadTreeCompositingThread = new QuadTreeCompositing();
+    this->mvcCompositingThread = new MVCCompositingThread();
+
+    this->newButton->setFocus();
 
     connect(this->newButton, SIGNAL(clicked(bool)), this, SLOT(newClick()));
     connect(this->adjustSizeButton, SIGNAL(clicked(bool)), this, SLOT(adjustSizeClick()));
@@ -95,12 +102,17 @@ MainWindow::MainWindow(QWidget *parent)
     connect(this->imageView->label, SIGNAL(dragged(QPoint)), this, SLOT(dragHandler(QPoint)));
     connect(this->imageView->label, SIGNAL(staticClick(QPoint)), this, SLOT(clickhandler(QPoint)));
     connect(this->compositeButton, SIGNAL(clicked(bool)), this, SLOT(quadTreeCompositingToggle()));
+    connect(this->mvcCompositeButton, SIGNAL(clicked(bool)), this, SLOT(mvcCompositingToggle()));
     connect(this->saveButton, SIGNAL(clicked(bool)), this, SLOT(saveClick()));
     connect(this->aboutButton, SIGNAL(clicked(bool)), this, SLOT(aboutClick()));
 
     connect(this->quadTreeCompositingThread, SIGNAL(updateStatus(QString)), this->statusDialog, SLOT(addStatus(QString)), Qt::QueuedConnection);
     connect(this->quadTreeCompositingThread, SIGNAL(finished()), this->statusDialog, SLOT(close()), Qt::QueuedConnection);
     connect(this->quadTreeCompositingThread, SIGNAL(finished()), this, SLOT(quadTreeCompositingFinish()), Qt::QueuedConnection);
+
+    connect(this->mvcCompositingThread, SIGNAL(updateStatus(QString)), this->statusDialog, SLOT(addStatus(QString)), Qt::QueuedConnection);
+    connect(this->mvcCompositingThread, SIGNAL(finished()), this->statusDialog, SLOT(close()), Qt::QueuedConnection);
+    connect(this->mvcCompositingThread, SIGNAL(finished()), this, SLOT(mvcCompositingFinish()), Qt::QueuedConnection);
 }
 
 void MainWindow::newClick() {
@@ -219,9 +231,23 @@ void MainWindow::clickhandler(QPoint pos) {
 }
 
 void MainWindow::quadTreeCompositingToggle() {
-    if (this->curDocment == NULL) return;
+    if (this->curDocment == NULL) {
+        QMessageBox::information(this, "New Document Required", "Please create new document at first.", QMessageBox::Ok);
+        return;
+    }
     this->quadTreeCompositingThread->doc = this->curDocment;
     this->quadTreeCompositingThread->start();
+    this->statusDialog->cleanStatus();
+    this->statusDialog->exec();
+}
+
+void MainWindow::mvcCompositingToggle() {
+    if (this->curDocment == NULL) {
+        QMessageBox::information(this, "New Document Required", "Please create new document at first.", QMessageBox::Ok);
+        return;
+    }
+    this->mvcCompositingThread->doc = this->curDocment;
+    this->mvcCompositingThread->start();
     this->statusDialog->cleanStatus();
     this->statusDialog->exec();
 }
@@ -229,6 +255,13 @@ void MainWindow::quadTreeCompositingToggle() {
 void MainWindow::quadTreeCompositingFinish() {
     delete this->curDocment;
     this->curDocment = this->quadTreeCompositingThread->ans;
+    this->layerView->setNewDocument(this->curDocment);
+    this->viewUpdate();
+}
+
+void MainWindow::mvcCompositingFinish() {
+    delete this->curDocment;
+    this->curDocment = this->mvcCompositingThread->ans;
     this->layerView->setNewDocument(this->curDocment);
     this->viewUpdate();
 }

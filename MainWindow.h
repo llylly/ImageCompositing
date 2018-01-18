@@ -21,6 +21,7 @@
 #include "AboutDialog.h"
 
 #include "QuadTreeCompositing.h"
+#include "MVCCompositingThread.h"
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -35,6 +36,7 @@ private:
     QPushButton *autoAdjustSizeButton;
     QPushButton *addLayerButton;
     QPushButton *compositeButton;
+    QPushButton *mvcCompositeButton;
     QPushButton *saveButton;
     QPushButton *aboutButton;
     LayerListWidget *layerView;
@@ -45,6 +47,7 @@ private:
     AboutDialog *aboutDialog;
 
     QuadTreeCompositing *quadTreeCompositingThread;
+    MVCCompositingThread *mvcCompositingThread;
 
 private slots:
     void newClick();
@@ -59,11 +62,13 @@ private slots:
     void dragHandler(QPoint delta);
     void clickhandler(QPoint pos);
     void quadTreeCompositingToggle();
+    void mvcCompositingToggle();
 
 public slots:
     void viewUpdate();
 
     void quadTreeCompositingFinish();
+    void mvcCompositingFinish();
 
 public:
     MainWindow(QWidget *parent = 0);

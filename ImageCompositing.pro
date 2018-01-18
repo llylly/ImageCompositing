@@ -38,7 +38,8 @@ SOURCES += main.cpp \
     QuadTreeCompositing.cpp \
     QuadTreeNode.cpp \
     StatusDialog.cpp \
-    AboutDialog.cpp
+    AboutDialog.cpp \
+    MVCCompositingThread.cpp
 
 HEADERS  += \
     MainWindow.h \
@@ -53,4 +54,5 @@ HEADERS  += \
     QuadTreeCompositing.h \
     QuadTreeNode.h \
     StatusDialog.h \
-    AboutDialog.h
+    AboutDialog.h \
+    MVCCompositingThread.h
