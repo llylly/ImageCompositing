@@ -13,6 +13,9 @@ TEMPLATE = app
 
 INCLUDEPATH += "/usr/local/include"
 
+LIBS        += -L "/usr/local/lib" -lgmp
+LIBS        += -L "/usr/local/lib" -lCGAL
+
 # The following define makes your compiler emit warnings if you use
 # any feature of Qt which as been marked as deprecated (the exact warnings
 # depend on your compiler). Please consult the documentation of the
@@ -39,7 +42,8 @@ SOURCES += main.cpp \
     QuadTreeNode.cpp \
     StatusDialog.cpp \
     AboutDialog.cpp \
-    MVCCompositingThread.cpp
+    MVCCompositingThread.cpp \
+    MVCHierarchyList.cpp
 
 HEADERS  += \
     MainWindow.h \
@@ -55,4 +59,5 @@ HEADERS  += \
     QuadTreeNode.h \
     StatusDialog.h \
     AboutDialog.h \
-    MVCCompositingThread.h
+    MVCCompositingThread.h \
+    MVCHierarchyList.h

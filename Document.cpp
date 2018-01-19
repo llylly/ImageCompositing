@@ -39,6 +39,10 @@ void Document::addLayer(DocumentLayer *layer) {
     this->layers.push_back(layer);
 }
 
+void Document::addLayerAtBottom(DocumentLayer *layer) {
+    this->layers.insert(this->layers.begin(), layer);
+}
+
 QPixmap *Document::genViewImage(bool forSave) {
     int *arrR = new int[this->width * this->height];
     int *arrG = new int[this->width * this->height];
@@ -47,18 +51,18 @@ QPixmap *Document::genViewImage(bool forSave) {
     for (int i=0; i<this->height; ++i)
         for (int j=0; j<this->width; ++j) {
             if (forSave)
-                arrR[I(i,j,this->width)] = arrG[I(i,j,this->width)] = arrB[I(i,j,this->width)] = 255;
+                arrR[Q(i,j,this->width)] = arrG[Q(i,j,this->width)] = arrB[Q(i,j,this->width)] = 255;
             else {
                 if (this->selectedLayer == -1)
                     if (((i/8)&1)^((j/8)&1))
-                        arrR[I(i,j,this->width)] = arrG[I(i,j,this->width)] = arrB[I(i,j,this->width)] = 180;
+                        arrR[Q(i,j,this->width)] = arrG[Q(i,j,this->width)] = arrB[Q(i,j,this->width)] = 180;
                     else
-                        arrR[I(i,j,this->width)] = arrG[I(i,j,this->width)] = arrB[I(i,j,this->width)] = 255;
+                        arrR[Q(i,j,this->width)] = arrG[Q(i,j,this->width)] = arrB[Q(i,j,this->width)] = 255;
                 else
                     if (((i/8)&1)^((j/8)&1))
-                        arrR[I(i,j,this->width)] = arrG[I(i,j,this->width)] = arrB[I(i,j,this->width)] = 90;
+                        arrR[Q(i,j,this->width)] = arrG[Q(i,j,this->width)] = arrB[Q(i,j,this->width)] = 90;
                     else
-                        arrR[I(i,j,this->width)] = arrG[I(i,j,this->width)] = arrB[I(i,j,this->width)] = 127;
+                        arrR[Q(i,j,this->width)] = arrG[Q(i,j,this->width)] = arrB[Q(i,j,this->width)] = 127;
                 }
         }
 
@@ -83,16 +87,16 @@ QPixmap *Document::genViewImage(bool forSave) {
         if (wb > this->width) wb = this->width;
         for (int i = ha; i < hb; ++i)
             for (int j = wa; j < wb; ++j)
-                if (!curLayer->D[I(i-curLayer->hOffset, j-curLayer->wOffset, curLayer->width)]) {
-                    arrR[I(i,j,this->width)] = curLayer->R[I(i-curLayer->hOffset, j-curLayer->wOffset, curLayer->width)];
-                    arrG[I(i,j,this->width)] = curLayer->G[I(i-curLayer->hOffset, j-curLayer->wOffset, curLayer->width)];
-                    arrB[I(i,j,this->width)] = curLayer->B[I(i-curLayer->hOffset, j-curLayer->wOffset, curLayer->width)];
+                if (!curLayer->D[Q(i-curLayer->hOffset, j-curLayer->wOffset, curLayer->width)]) {
+                    arrR[Q(i,j,this->width)] = curLayer->R[Q(i-curLayer->hOffset, j-curLayer->wOffset, curLayer->width)];
+                    arrG[Q(i,j,this->width)] = curLayer->G[Q(i-curLayer->hOffset, j-curLayer->wOffset, curLayer->width)];
+                    arrB[Q(i,j,this->width)] = curLayer->B[Q(i-curLayer->hOffset, j-curLayer->wOffset, curLayer->width)];
                     if ((ii != -1) && (this->selectedLayer != -1) && (!forSave)) {
-                        arrR[I(i,j,this->width)] >>= 1, arrG[I(i,j,this->width)] >>= 1, arrB[I(i,j,this->width)] >>= 1;
+                        arrR[Q(i,j,this->width)] >>= 1, arrG[Q(i,j,this->width)] >>= 1, arrB[Q(i,j,this->width)] >>= 1;
                     }
                     if ((ii == -1) && (!forSave)) {
                         if (this->checkInside(i,j))
-                            arrR[I(i,j,this->width)] >>= 1, arrG[I(i,j,this->width)] >>= 1, arrB[I(i,j,this->width)] >>= 1;
+                            arrR[Q(i,j,this->width)] >>= 1, arrG[Q(i,j,this->width)] >>= 1, arrB[Q(i,j,this->width)] >>= 1;
                     }
                 }
     }
@@ -105,9 +109,9 @@ QPixmap *Document::genViewImage(bool forSave) {
                 int now_x = ite->y() + mark_x[j];
                 int now_y = ite->x() + mark_y[j];
                 if ((now_x >= 0) && (now_x < this->width) && (now_y >= 0) && (now_y < this->height)) {
-                    arrR[I(now_x,now_y,this->width)] = 255;
-                    arrG[I(now_x,now_y,this->width)] = 255;
-                    arrB[I(now_x,now_y,this->width)] = 255;
+                    arrR[Q(now_x,now_y,this->width)] = 255;
+                    arrG[Q(now_x,now_y,this->width)] = 255;
+                    arrB[Q(now_x,now_y,this->width)] = 255;
                 }
             }
         }
@@ -124,9 +128,9 @@ QPixmap *Document::genViewImage(bool forSave) {
                     for (int x = xmin; x <= xmax; ++x) {
                         int y = ((y1 - y2) * x + x1 * y2 - x2 * y1) / (x1 - x2);
                         if ((x >= 0) && (x < this->height) && (y >= 0) && (y < this->width)) {
-                            arrR[I(x,y,this->width)] = 255;
-                            arrG[I(x,y,this->width)] = 255;
-                            arrB[I(x,y,this->width)] = 255;
+                            arrR[Q(x,y,this->width)] = 255;
+                            arrG[Q(x,y,this->width)] = 255;
+                            arrB[Q(x,y,this->width)] = 255;
                         }
                     }
                 } else {
@@ -135,9 +139,9 @@ QPixmap *Document::genViewImage(bool forSave) {
                     for (int y = ymin; y <= ymax; ++y) {
                         int x = ((x1 - x2) * y + x2 * y1 - x1 * y2) / (y1 - y2);
                         if ((x >= 0) && (x < this->height) && (y >= 0) && (y < this->width)) {
-                            arrR[I(x,y,this->width)] = 255;
-                            arrG[I(x,y,this->width)] = 255;
-                            arrB[I(x,y,this->width)] = 255;
+                            arrR[Q(x,y,this->width)] = 255;
+                            arrG[Q(x,y,this->width)] = 255;
+                            arrB[Q(x,y,this->width)] = 255;
                         }
                     }
                 }
@@ -148,7 +152,7 @@ QPixmap *Document::genViewImage(bool forSave) {
     QImage *qimg = new QImage(this->width, this->height, QImage::Format_RGB32);
     for (int i=0; i<this->height; ++i)
         for (int j=0; j<this->width; ++j) {
-            qimg->setPixelColor(j, i, QColor(arrR[I(i,j,this->width)], arrG[I(i,j,this->width)], arrB[I(i,j,this->width)]));
+            qimg->setPixelColor(j, i, QColor(arrR[Q(i,j,this->width)], arrG[Q(i,j,this->width)], arrB[Q(i,j,this->width)]));
         }
 
     QPixmap *qpixmap = new QPixmap(QPixmap::fromImage(*qimg));
@@ -206,9 +210,9 @@ void Document::crop() {
         DocumentLayer *selectLayer = this->layers[this->selectedLayer];
         for (int i=0; i<selectLayer->height; ++i)
             for (int j=0; j<selectLayer->width; ++j)
-                if (!selectLayer->D[I(i,j,selectLayer->width)])
+                if (!selectLayer->D[Q(i,j,selectLayer->width)])
                     if (this->checkInside(i+selectLayer->hOffset, j+selectLayer->wOffset))
-                        selectLayer->D[I(i,j,selectLayer->width)] = true;
+                        selectLayer->D[Q(i,j,selectLayer->width)] = true;
     }
     this->choosedPoints.clear();
 }
@@ -222,7 +226,7 @@ void Document::cropByImageMask(QImage *maskimg) {
             for (int j=0; j<rw; ++j) {
                 QRgb maskRgb = maskimg->pixel(j, i);
                 if ((qRed(maskRgb) + qGreen(maskRgb) + qBlue(maskRgb)) / 3 > 240) {
-                    selectLayer->D[I(i, j, lw)] = true;
+                    selectLayer->D[Q(i, j, lw)] = true;
                 }
             }
     }

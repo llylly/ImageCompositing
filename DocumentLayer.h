@@ -4,7 +4,7 @@
 #include <string>
 #include <QImage>
 
-#define I(i,j,h) ((i)*(h)+(j))
+#define Q(i,j,h) ((i)*(h)+(j))
 
 using namespace std;
 

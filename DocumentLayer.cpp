@@ -13,9 +13,9 @@ DocumentLayer::DocumentLayer(QImage *qimg, string name, int wOffset, int hOffset
     this->B = new int[this->width * this->height];
     for (int i=0; i<h; ++i)
         for (int j=0; j<w; ++j) {
-            this->R[I(i,j,w)] = qRed(qimg->pixel(j, i));
-            this->G[I(i,j,w)] = qGreen(qimg->pixel(j, i));
-            this->B[I(i,j,w)] = qBlue(qimg->pixel(j, i));
+            this->R[Q(i,j,w)] = qRed(qimg->pixel(j, i));
+            this->G[Q(i,j,w)] = qGreen(qimg->pixel(j, i));
+            this->B[Q(i,j,w)] = qBlue(qimg->pixel(j, i));
         }
 
     this->D = new bool[this->width * this->height];

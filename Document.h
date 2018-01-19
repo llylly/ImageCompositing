@@ -15,6 +15,7 @@ class Document {
 public:
     Document(MainWindow *theWindow, int width, int height);
     void addLayer(DocumentLayer *layer);
+    void addLayerAtBottom(DocumentLayer *layer);
     QPixmap *genViewImage(bool forSave = false);
 
     MainWindow *theWindow;
