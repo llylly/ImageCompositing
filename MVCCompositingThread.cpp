@@ -1,6 +1,6 @@
 #include "MVCCompositingThread.h"
 
-void drawCDT(CDT &cdt, int *R, int *G, int *B, int n, int m) {
+void drawCDT(CDT &cdt, int *R, int *G, int *B, bool *D, int n, int m) {
     for (CDT::Finite_edges_iterator edge_ite = cdt.finite_edges_begin(); edge_ite != cdt.finite_edges_end(); ++edge_ite) {
         Point source = cdt.segment(edge_ite).source();
         Point dest = cdt.segment(edge_ite).target();
@@ -19,6 +19,7 @@ void drawCDT(CDT &cdt, int *R, int *G, int *B, int n, int m) {
                     R[Q(x,y,m)] = 255;
                     G[Q(x,y,m)] = 255;
                     B[Q(x,y,m)] = 255;
+                    D[Q(x,y,m)] = false;
                 }
             }
         } else {
@@ -31,6 +32,7 @@ void drawCDT(CDT &cdt, int *R, int *G, int *B, int n, int m) {
                     R[Q(x,y,m)] = 255;
                     G[Q(x,y,m)] = 255;
                     B[Q(x,y,m)] = 255;
+                    D[Q(x,y,m)] = false;
                 }
             }
         }
@@ -190,23 +192,20 @@ void MVCCompositingThread::run() {
     this->startTime = time(0);
     this->printLog(logger);
 
-    Document *docAns = new Document(doc->theWindow, doc->width, doc->height);
-
     int m = doc->width, n = doc->height, nm = doc->width * doc->height;
+
     int *oR = new int[nm], *oG = new int[nm], *oB = new int[nm], *z = new int[nm];
     double *dR = new double[nm], *dG = new double[nm], *dB = new double[nm];
     int *newR = new int[nm], *newG = new int[nm], *newB = new int[nm];
     int *zPixelCount = new int[doc->layers.size()];
-
     int *traverseVisit = new int[(2*n+1)*(2*m+1)];
-    int traverseCnt = 0;
-
     int *floodfillVisit = new int[nm];
-    int floodfillCnt = 0;
-
     int *meshR = new int[nm], *meshG = new int[nm], *meshB = new int[nm];
-
+    bool *meshD = new bool[nm];
     int *que_x = new int[nm], *que_y = new int[nm];
+
+    int traverseCnt = 0;
+    int floodfillCnt = 0;
 
     for (int i=0; i<(2*n+1)*(2*m+1); ++i)
         traverseVisit[i] = traverseCnt;
@@ -217,10 +216,12 @@ void MVCCompositingThread::run() {
         oR[i] = oG[i] = oB[i] = 255;
         z[i] = -1;
         meshR[i] = meshG[i] = meshB[i] = 0;
+        meshD[i] = true;
     }
 
     for (int ii=0; ii < doc->layers.size(); ++ii)
         zPixelCount[ii] = 0;
+
     for (int ii = (int)(doc->layers.size() - 1); ii >= 0; --ii) {
         DocumentLayer *curLayer = doc->layers[ii];
         int ha = curLayer->hOffset, hb = curLayer->height + curLayer->hOffset,
@@ -243,6 +244,9 @@ void MVCCompositingThread::run() {
     for (int i=0; i<nm; ++i)
         dR[i] = oR[i], dG[i] = oG[i], dB[i] = oB[i];
 
+    logger << "Initial image render finish";
+    this->printLog(logger);
+
     int d_x[] = {-1, 0, 0, 1};
     int d_y[] = {0, -1, 1, 0};
 
@@ -252,7 +256,8 @@ void MVCCompositingThread::run() {
         int s_x, s_y, inner_x, inner_y;
 
         while ((zPixelCount[ii] > 0) && (tryTimes < 100)) {
-            cout << "Run for layer: " << ii << " current try time: " << tryTimes << endl;
+            logger << "Iteration for layer #" << ii << " block #" << tryTimes;
+            this->printLog(logger);
 
             s_x = -1, s_y = -1, inner_x = -1, inner_y = -1;
             for (int i=0; i<n; ++i) {
@@ -284,31 +289,46 @@ void MVCCompositingThread::run() {
             int zToFill = traverse(z, traverseVisit, traverseCnt, s_x, s_y, ii, borderPoints, vitalPoints, n, m);
             floodfill(z, floodfillVisit, floodfillCnt, inner_x, inner_y, ii, que_x, que_y, n, m);
 
+            logger << "  Block and boundary traverse finish";
+            this->printLog(logger);
+
             CDT cdt;
             for (int i=0; i<borderPoints.size()-1; ++i)
                 cdt.insert_constraint(borderPoints[i], borderPoints[i+1]);
-            cdt.insert_constraint(borderPoints[borderPoints.size()-1], borderPoints[0]);
+            try {
+                cdt.insert_constraint(borderPoints[borderPoints.size()-1], borderPoints[0]);
+            } catch (exception e) {
+                break;
+            }
+
             Mesher mesher(cdt);
             mesher.set_criteria(Criteria(0.125));
-            mesher.refine_mesh();
+            try {
+                mesher.refine_mesh();
+            } catch (exception e) {
+                break;
+            }
 
-            drawCDT(cdt, meshR, meshG, meshB, n, m);
+            drawCDT(cdt, meshR, meshG, meshB, meshD, n, m);
+
+            logger << "  Adaptive mesh generation finish";
+            this->printLog(logger);
 
             int nv = vitalPoints.size(), nmesh = cdt.number_of_vertices();
             double *vitalDelta = new double[nv];
             double *meshDelta = new double[nmesh];
 
-            cout << "Border pixel: " << borderPoints.size() << endl;
-            cout << "Vital pixel: " << nv << endl;
-            cout << "Mesh pixel: " << nmesh << endl;
-
-            for (int i=0; i<nv; ++i) {
-                cout << "Vital pixel #" << i << ": (" << vitalPoints[i].x() << ", " << vitalPoints[i].y() << ")" << endl;
-            }
+            logger << "  # of boundary pixel: " << borderPoints.size();
+            this->printLog(logger);
+            logger << "  # of constrained pixel: " << nv;
+            this->printLog(logger);
+            logger << "  # of mesh vertices: " << nmesh;
+            this->printLog(logger);
 
             MVCHierarchyList *hierarchyList = new MVCHierarchyList(vitalPoints);
 
-            cout << "Hierarchy list built" << endl;
+            logger << "  Hierarchical list generation finish";
+            this->printLog(logger);
 
             for (int channel = 0; channel < 3; ++channel) {
                 double *curChannel;
@@ -316,9 +336,10 @@ void MVCCompositingThread::run() {
                 if (channel == 1) curChannel = dG;
                 if (channel == 2) curChannel = dB;
 
-                if (channel == 0) cout << "Channel R" << endl;
-                if (channel == 1) cout << "Channel G" << endl;
-                if (channel == 2) cout << "Channel B" << endl;
+                if (channel == 0) logger << "    Channel R";
+                if (channel == 1) logger << "    Channel G";
+                if (channel == 2) logger << "    Channel B";
+                this->printLog(logger);
 
                 for (CDT::Finite_vertices_iterator vertex_ite = cdt.finite_vertices_begin(); vertex_ite != cdt.finite_vertices_end(); ++vertex_ite) {
                      vertex_ite->info() = 0;
@@ -329,7 +350,6 @@ void MVCCompositingThread::run() {
                     for (int j=0; j<3; ++j) {
                         Vertex_handle vertex = face->vertex(j);
                         if (distance(vertex->point(), vitalPoints[i]) < 1e-6) {
-//                            cout << "Vital point " << i << " labeled" << endl;
                             vertex->info() = i + 1;
                         }
                     }
@@ -361,8 +381,9 @@ void MVCCompositingThread::run() {
                             }
                     }
                     vitalDelta[i] = latentColor - now_color;
-//                    cout << "Vital point " << i << " delta: " << vitalDelta[i] << endl;
                 }
+                logger << "      Boundary difference calculation finish";
+                this->printLog(logger);
 
                 hierarchyList->loadValue(vitalDelta, nv);
 
@@ -373,16 +394,14 @@ void MVCCompositingThread::run() {
                         if (distance(vertex->point(), meshPoints[i]) < 1e-6) {
                             if (vertex->info() > 0) {
                                 meshDelta[i] = vitalDelta[vertex->info() - 1];
-//                                cout << "Mesh point #" << i << " is vertex point #" << vertex->info() - 1 << endl;
-//                                cout << "Its answer: " << meshDelta[i] << endl;
                             } else {
                                 meshDelta[i] = hierarchyList->calc(meshPoints[i].x(), meshPoints[i].y());
-//                                cout << "Mesh point #" << i << " not in mesh" << endl;
-//                                cout << "Its answer: " << meshDelta[i] << endl;
                             }
                         }
                     }
                 }
+                logger << "      Mesh vertices difference calculation finish";
+                this->printLog(logger);
 
                 for (int i=0; i<nmesh; ++i) {
                     Face_handle face = cdt.locate(meshPoints[i]);
@@ -405,6 +424,8 @@ void MVCCompositingThread::run() {
                             double delta = triangleInterpolate(2*i+1, 2*j+1, face, meshDelta);
                             curChannel[Q(i,j,m)] += delta;
                         }
+                logger << "      Inner pixels difference calculation finish";
+                this->printLog(logger);
             }
 
             for (int i=0; i<n; ++i)
@@ -416,6 +437,9 @@ void MVCCompositingThread::run() {
                     }
 
             ++tryTimes;
+
+            delete[] vitalDelta;
+            delete[] meshDelta;
         }
     }
 
@@ -428,10 +452,30 @@ void MVCCompositingThread::run() {
         newB[i] = max(min(newB[i], 255), 0);
     }
 
-    docAns->addLayer(new DocumentLayer(newR, newG, newB, m, n, "Result"));
-    docAns->addLayer(new DocumentLayer(meshR, meshG, meshB, m, n, "AdaptiveMesh"));
+    doc->addLayerAtBottom(new DocumentLayer(meshR, meshG, meshB, m, n, "AdaptiveMesh", meshD));
+    doc->addLayerAtBottom(new DocumentLayer(newR, newG, newB, m, n, "Result"));
 
-    ans = docAns;
+    delete[] oR;
+    delete[] oG;
+    delete[] oB;
+    delete[] z;
+    delete[] dR;
+    delete[] dG;
+    delete[] dB;
+    delete[] newR;
+    delete[] newG;
+    delete[] newB;
+    delete[] zPixelCount;
+    delete[] traverseVisit;
+    delete[] meshR;
+    delete[] meshG;
+    delete[] meshB;
+    delete[] meshD;
+    delete[] que_x;
+    delete[] que_y;
+
+    ans = doc;
+
     logger << "Finish";
     this->printLog(logger);
 }

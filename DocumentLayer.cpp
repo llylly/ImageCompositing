@@ -22,12 +22,12 @@ DocumentLayer::DocumentLayer(QImage *qimg, string name, int wOffset, int hOffset
     memset(D, 0, sizeof(bool) * this->width * this->height);
 }
 
-DocumentLayer::DocumentLayer(int *R, int *G, int *B, int width, int height, string name, int wOffset, int hOffset) {
+DocumentLayer::DocumentLayer(int *R, int *G, int *B, int width, int height, string name, bool *D) {
     this->name = name;
     this->width = width;
     this->height = height;
-    this->wOffset = wOffset;
-    this->hOffset = hOffset;
+    this->wOffset = 0;
+    this->hOffset = 0;
 
     this->R = new int[width * height];
     this->G = new int[width * height];
@@ -38,7 +38,11 @@ DocumentLayer::DocumentLayer(int *R, int *G, int *B, int width, int height, stri
         this->B[i] = B[i];
     }
     this->D = new bool[this->width * this->height];
-    memset(D, 0, sizeof(bool) * this->width * this->height);
+    memset(this->D, 0, sizeof(bool) * this->width * this->height);
+    if (D != NULL) {
+        for (int i=0; i<width*height; ++i)
+            this->D[i] = D[i];
+    }
 }
 
 void DocumentLayer::addOffset(int w_offset, int h_offset) {

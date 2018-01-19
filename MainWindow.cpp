@@ -107,11 +107,11 @@ MainWindow::MainWindow(QWidget *parent)
     connect(this->aboutButton, SIGNAL(clicked(bool)), this, SLOT(aboutClick()));
 
     connect(this->quadTreeCompositingThread, SIGNAL(updateStatus(QString)), this->statusDialog, SLOT(addStatus(QString)), Qt::QueuedConnection);
-    connect(this->quadTreeCompositingThread, SIGNAL(finished()), this->statusDialog, SLOT(close()), Qt::QueuedConnection);
+//    connect(this->quadTreeCompositingThread, SIGNAL(finished()), this->statusDialog, SLOT(close()), Qt::QueuedConnection);
     connect(this->quadTreeCompositingThread, SIGNAL(finished()), this, SLOT(quadTreeCompositingFinish()), Qt::QueuedConnection);
 
     connect(this->mvcCompositingThread, SIGNAL(updateStatus(QString)), this->statusDialog, SLOT(addStatus(QString)), Qt::QueuedConnection);
-    connect(this->mvcCompositingThread, SIGNAL(finished()), this->statusDialog, SLOT(close()), Qt::QueuedConnection);
+//    connect(this->mvcCompositingThread, SIGNAL(finished()), this->statusDialog, SLOT(close()), Qt::QueuedConnection);
     connect(this->mvcCompositingThread, SIGNAL(finished()), this, SLOT(mvcCompositingFinish()), Qt::QueuedConnection);
 }
 
@@ -253,14 +253,16 @@ void MainWindow::mvcCompositingToggle() {
 }
 
 void MainWindow::quadTreeCompositingFinish() {
-    delete this->curDocment;
+    if (this->curDocment != this->quadTreeCompositingThread->ans)
+        delete this->curDocment;
     this->curDocment = this->quadTreeCompositingThread->ans;
     this->layerView->setNewDocument(this->curDocment);
     this->viewUpdate();
 }
 
 void MainWindow::mvcCompositingFinish() {
-    delete this->curDocment;
+    if (this->curDocment != this->mvcCompositingThread->ans)
+        delete this->curDocment;
     this->curDocment = this->mvcCompositingThread->ans;
     this->layerView->setNewDocument(this->curDocment);
     this->viewUpdate();

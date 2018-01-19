@@ -147,8 +147,6 @@ void QuadTreeCompositing::run() {
 
     srand(time(0));
 
-    Document *docAns = new Document(doc->theWindow, doc->width, doc->height);
-
     int m = doc->width, n = doc->height, nm = doc->width * doc->height;
     int *R = new int[nm], *G = new int[nm], *B = new int[nm], *z = new int[nm];
     int *nR = new int[nm], *nG = new int[nm], *nB = new int[nm];
@@ -435,10 +433,9 @@ void QuadTreeCompositing::run() {
 
     /* STAGE 9: render the answer */
     {
-        docAns->addLayer(new DocumentLayer(nR, nG, nB, m, n, "Answer"));
-        docAns->addLayer(new DocumentLayer(R, G, B, m, n, "Origin"));
         traversePaint(root, qtreeR, qtreeG, qtreeB, n, m);
-        docAns->addLayer(new DocumentLayer(qtreeR, qtreeG, qtreeB, m, n, "Quad Tree"));
+        doc->addLayerAtBottom(new DocumentLayer(qtreeR, qtreeG, qtreeB, m, n, "QuadTree"));
+        doc->addLayerAtBottom(new DocumentLayer(nR, nG, nB, m, n, "Result"));
     }
 
     /* Clean */
@@ -467,7 +464,7 @@ void QuadTreeCompositing::run() {
     delete[] delta;
     delete[] x;
 
-    ans = docAns;
+    ans = doc;
 
     logger << "Finish";
     this->printLog(logger);

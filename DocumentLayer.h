@@ -12,7 +12,7 @@ class DocumentLayer
 {
 public:
     DocumentLayer(QImage *qimg, string name, int wOffset = 0, int hOffset = 0);
-    DocumentLayer(int *R, int *G, int *B, int width, int height, string name, int wOffset = 0, int hOffset = 0);
+    DocumentLayer(int *R, int *G, int *B, int width, int height, string name, bool *D = NULL);
     ~DocumentLayer();
     void addOffset(int w_offset, int h_offset);
 
