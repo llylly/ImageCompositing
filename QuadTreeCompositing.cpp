@@ -21,7 +21,7 @@ void traversePaint(QuadTreeNode *p, int *R, int *G, int *B, int n, int m) {
     }
 }
 
-vector<pair<int, double>> *edgeInterpolate(int i, int j, QuadTreeNode *root, const bool* isKeyPoint, const int *keyPointNo, int n, int m) {
+vector<pair<int, double>> *edgeInterpolate(int i, int j, QuadTreeNode *root, const bool* isKeyPoint, const int *keyPointNo, int, int m) {
     QuadTreeNode *nodes[2] = {root->findNode(i, j), root->findUpperBoundNode(i, j)};
     vector<pair<int, double>> *ans = new vector<pair<int, double>>();
     for (int k=0; k<2; ++k) {
@@ -111,8 +111,8 @@ Eigen::SparseMatrix<double> *getMatrix(vector<vector<pair<int, double>>*> *A, in
     double tv;
     for (int i=0; i<m; ++i) {
         vector<pair<int, double>> *nowVec = (*A)[i];
-        for (int j=0; j<nowVec->size(); ++j)
-            for (int k=0; k<nowVec->size(); ++k) {
+        for (int j=0; j<int(nowVec->size()); ++j)
+            for (int k=0; k<int(nowVec->size()); ++k) {
                 ti = (*nowVec)[j].first;
                 tj = (*nowVec)[k].first;
                 tv = (*nowVec)[j].second * (*nowVec)[k].second;
@@ -178,7 +178,7 @@ void QuadTreeCompositing::run() {
         for (int i=0; i<nm; ++i)
             R[i] = G[i] = B[i] = 255, z[i] = -1;
 
-        for (int k=0; k<doc->layers.size(); ++k) {
+        for (int k=0; k<int(doc->layers.size()); ++k) {
             DocumentLayer *curLayer = doc->layers[k];
             int ha = curLayer->hOffset, hb = curLayer->height + curLayer->hOffset;
             int wa = curLayer->wOffset, wb = curLayer->width + curLayer->wOffset;
@@ -232,7 +232,7 @@ void QuadTreeCompositing::run() {
 
         root = new QuadTreeNode(0, scale, 0, scale);
 
-        for (int i=0; i<borderPointXs.size(); ++i)
+        for (int i=0; i<int(borderPointXs.size()); ++i)
             QuadTreeNode::splitFromRootByPixel(root, borderPointXs[i], borderPointYs[i]);
 
         // constrain image border pixels to be border pixels in quadtree
@@ -291,9 +291,9 @@ void QuadTreeCompositing::run() {
                         interb = interpolates[I(i,j-1,m)];
                     }
                     interc = new vector<pair<int, double>>();
-                    for (int k=0; k<intera->size(); ++k)
+                    for (int k=0; k<int(intera->size()); ++k)
                         interc->push_back((*intera)[k]);
-                    for (int k=0; k<interb->size(); ++k) {
+                    for (int k=0; k<int(interb->size()); ++k) {
                         int index = -1;
                         for (int l=0; l<interc->size(); ++l)
                             if ((*interc)[l].first == (*interb)[k].first) {
@@ -309,7 +309,7 @@ void QuadTreeCompositing::run() {
         // constrain last pixel to be 0, to prevent incomplete-constrained
         vector<pair<int, double>> *lastRow = new vector<pair<int, double>>();
         vector<pair<int, double>> *proto = interpolates[I(n-1,m-1,m)];
-        for (int i=0; i<proto->size(); ++i)
+        for (int i=0; i<int(proto->size()); ++i)
             lastRow->push_back((*proto)[i]);
         A.push_back(lastRow);
         // calculate A^T * A
@@ -457,7 +457,7 @@ void QuadTreeCompositing::run() {
         delete now;
     }
     delete[] interpolates;
-    for (int i=0; i<A.size(); ++i)
+    for (int i=0; i<int(A.size()); ++i)
         delete A[i];
     delete matA;
     delete[] b;

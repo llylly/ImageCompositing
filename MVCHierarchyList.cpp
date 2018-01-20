@@ -24,9 +24,9 @@ double getAng(const Element &a, const Element &b, const Element &c) {
         if (e1 * e2 > 0.0)
             return 0.0;
         else
-            return M_PI;
+            return M_PI - 1e-6;
     }
-    if (abs(e2) < 1e-6) return M_PI;
+    if (abs(e2) < 1e-6) return M_PI - 1e-6;
     if (!isfinite(acos(e1/e2))) {
         cerr << "x1: " << x1 << " x2: " << x2 << " y1: " << y1 << " y2: " << y2 << " e1: " << e1 << " e2: " << e2 << " ERROR IN ACOS!" << endl;
     }
@@ -78,14 +78,14 @@ MVCHierarchyList::MVCHierarchyList(vector<Point> &pointVec) {
 }
 
 void MVCHierarchyList::loadValue(double *varr, int n) {
-    assert(n == layers[0]->size());
+    assert(n == int(layers[0]->size()));
     vector<Element> *bottom = layers[0];
     for (int i=0; i<n; ++i)
         (*bottom)[i].v = varr[i];
-    for (int i=1; i<layers.size(); ++i) {
+    for (int i=1; i<int(layers.size()); ++i) {
         vector<Element> *nowl = layers[i];
         vector<Element> *lowl = layers[i-1];
-        for (int j=0; j<nowl->size(); ++j) {
+        for (int j=0; j<int(nowl->size()); ++j) {
             Element &ele = (*nowl)[j];
             double sum = 0.;
             for (int k=0; k<ele.fromCnt; ++k)
@@ -112,7 +112,7 @@ double MVCHierarchyList::calc(double x, double y) {
 }
 
 MVCHierarchyList::~MVCHierarchyList() {
-    for (int i=0; i<this->layers.size(); ++i) {
+    for (int i=0; i<int(this->layers.size()); ++i) {
         delete this->layers[i];
     }
 }
@@ -132,7 +132,7 @@ pair<double, double> MVCHierarchyList::calc(double x, double y, int p, int level
     else
         w = (tan(ang1 / 2) + tan(ang2 / 2)) / d;
 
-    if ((level == layers.size() - 1) || ((d > dist_cond) && (ang1 < ang_cond) && (ang2 < ang_cond))) {
+    if ((level == int(layers.size() - 1)) || ((d > dist_cond) && (ang1 < ang_cond) && (ang2 < ang_cond))) {
         return make_pair(pb.v * w, w);
     } else {
         double sum_v = 0.0;

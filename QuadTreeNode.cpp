@@ -9,7 +9,10 @@ QuadTreeNode::QuadTreeNode(int xl, int xr, int yl, int yr) {
 
 QuadTreeNode::~QuadTreeNode() {
     if (!this->isLeaf) {
-        delete a, b, c, d;
+        delete a;
+        delete b;
+        delete c;
+        delete d;
     }
 }
 

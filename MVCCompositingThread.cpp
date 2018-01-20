@@ -2,8 +2,12 @@
 
 void drawCDT(CDT &cdt, int *R, int *G, int *B, bool *D, int n, int m) {
     for (CDT::Finite_edges_iterator edge_ite = cdt.finite_edges_begin(); edge_ite != cdt.finite_edges_end(); ++edge_ite) {
+//    for (CDT::Finite_faces_iterator face_ite = cdt.finite_faces_begin(); face_ite != cdt.finite_faces_end(); ++face_ite) {
+//        for (int i=0; i<3; ++i) {
         Point source = cdt.segment(edge_ite).source();
         Point dest = cdt.segment(edge_ite).target();
+//        Point source = face_ite->vertex(i)->point();
+//        Point dest = face_ite->vertex((i+1)%3)->point();
         int x1 = int(source.x() / 2. + 0.5), y1 = int(source.y() / 2. + 0.5), x2 = int(dest.x() / 2. + 0.5), y2 = int(dest.y() / 2. + 0.5);
         x1 = max(min(x1, n-1), 0);
         x2 = max(min(x2, n-1), 0);
@@ -36,6 +40,7 @@ void drawCDT(CDT &cdt, int *R, int *G, int *B, bool *D, int n, int m) {
                 }
             }
         }
+//        }
     }
 }
 
@@ -68,6 +73,7 @@ int traverse(int *z, int *traverseVisit, int &traverseCnt,
 
         int nex_x = -1, nex_y = -1;
         vector<Point> series[2]; bool valid[2] = {true, true};
+        series[0].clear(), series[1].clear();
         if (x & 1) {
             series[0].push_back(Point(x-1, y-1)), series[0].push_back(Point(x-2, y)), series[0].push_back(Point(x-1, y+1));
             series[1].push_back(Point(x+1, y-1)), series[1].push_back(Point(x+2, y)), series[1].push_back(Point(x+1, y+1));
@@ -219,7 +225,7 @@ void MVCCompositingThread::run() {
         meshD[i] = true;
     }
 
-    for (int ii=0; ii < doc->layers.size(); ++ii)
+    for (int ii=0; ii < (int)(doc->layers.size()); ++ii)
         zPixelCount[ii] = 0;
 
     for (int ii = (int)(doc->layers.size() - 1); ii >= 0; --ii) {
@@ -293,7 +299,7 @@ void MVCCompositingThread::run() {
             this->printLog(logger);
 
             CDT cdt;
-            for (int i=0; i<borderPoints.size()-1; ++i)
+            for (int i=0; i<int(borderPoints.size()-1); ++i)
                 cdt.insert_constraint(borderPoints[i], borderPoints[i+1]);
             try {
                 cdt.insert_constraint(borderPoints[borderPoints.size()-1], borderPoints[0]);
@@ -370,7 +376,7 @@ void MVCCompositingThread::run() {
                     if ((z[Q(x1,y1,m)] >= 0) && (z[Q(x1,y1,m)] <= ii)) x3 = x1, y3 = y1;
                     if ((z[Q(x2,y2,m)] >= 0) && (z[Q(x2,y2,m)] <= ii)) x3 = x2, y3 = y2;
                     double now_color = curChannel[Q(x3,y3,m)], latentColor = 255.0;
-                    for (int j=ii + 1; j < doc->layers.size(); ++j) {
+                    for (int j=ii + 1; j < int(doc->layers.size()); ++j) {
                         DocumentLayer *curLayer = doc->layers[j];
                         int lx = x3 - curLayer->hOffset, ly = y3 - curLayer->wOffset;
                         if ((lx >= 0) && (lx < curLayer->height) && (ly >= 0) && (ly < curLayer->width))
@@ -378,6 +384,7 @@ void MVCCompositingThread::run() {
                                 if (channel == 0) latentColor = curLayer->R[Q(lx,ly,curLayer->width)];
                                 if (channel == 1) latentColor = curLayer->G[Q(lx,ly,curLayer->width)];
                                 if (channel == 2) latentColor = curLayer->B[Q(lx,ly,curLayer->width)];
+                                break;
                             }
                     }
                     vitalDelta[i] = latentColor - now_color;
@@ -440,6 +447,7 @@ void MVCCompositingThread::run() {
 
             delete[] vitalDelta;
             delete[] meshDelta;
+            delete hierarchyList;
         }
     }
 

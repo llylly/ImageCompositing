@@ -67,26 +67,26 @@ void LayerListWidget::clickButtonUpdate(QListWidgetItem*) {
 
 void LayerListWidget::doubleClicked(QModelIndex index) {
     int ind = index.row();
-    if ((ind >= 0) && (ind < this->document->layers.size())) {
+    if ((ind >= 0) && (ind < int(this->document->layers.size()))) {
         this->document->selectLayer(ind);
     }
 }
 
 void LayerListWidget::upClicked() {
     int ind = this->listWidget->currentIndex().row();
-    if ((ind >= 0) && (ind < this->document->layers.size()))
+    if ((ind >= 0) && (ind < int(this->document->layers.size())))
         this->document->upLayer(ind);
 }
 
 void LayerListWidget::downClicked() {
     int ind = this->listWidget->currentIndex().row();
-    if ((ind >= 0) && (ind < this->document->layers.size()))
+    if ((ind >= 0) && (ind < int(this->document->layers.size())))
         this->document->downLayer(ind);
 }
 
 void LayerListWidget::delClicked() {
     int ind = this->listWidget->currentIndex().row();
-    if ((ind >= 0) && (ind < this->document->layers.size()))
+    if ((ind >= 0) && (ind < int(this->document->layers.size())))
         this->document->deleteLayer(ind);
 }
 

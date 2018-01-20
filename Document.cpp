@@ -117,7 +117,7 @@ QPixmap *Document::genViewImage(bool forSave) {
         }
 
         if (this->choosedPoints.size() > 1) {
-            for (int i=0; i<this->choosedPoints.size(); ++i) {
+            for (int i=0; i<int(this->choosedPoints.size()); ++i) {
                 int nex = (i + 1) % this->choosedPoints.size();
                 int x1 = this->choosedPoints[i].y(), y1 = this->choosedPoints[i].x();
                 int x2 = this->choosedPoints[nex].y(), y2 = this->choosedPoints[nex].x();
@@ -272,9 +272,9 @@ bool Document::checkInside(int x, int y) {
     int j=this->choosedPoints.size() - 1;
     bool oddNodes = false;
 
-    for (int i=0; i<this->choosedPoints.size(); i++) {
-        if ((this->choosedPoints[i].x() < y && this->choosedPoints[j].x() >= y
-            || this->choosedPoints[j].x() < y && this->choosedPoints[i].x() >=y)
+    for (int i=0; i<int(this->choosedPoints.size()); i++) {
+        if (((this->choosedPoints[i].x() < y && this->choosedPoints[j].x() >= y)
+            || (this->choosedPoints[j].x() < y && this->choosedPoints[i].x() >=y))
             && (this->choosedPoints[i].y() <= x || this->choosedPoints[j].y() <= x)) {
             oddNodes ^= ((float)this->choosedPoints[i].y()+(float)(y-this->choosedPoints[i].x())/(float)(this->choosedPoints[j].x()-this->choosedPoints[i].x())*(float)(this->choosedPoints[j].y()-this->choosedPoints[i].y())<(float)x);
         }
